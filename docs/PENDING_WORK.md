@@ -4,9 +4,26 @@ Continuación de `AUDIT_REPORT.md`. Items ordenados por qué tan cerca están de
 
 ---
 
-## 1. Completar la reconstrucción de sesión de `Hub_OpenSession`
+## Estado actualizado (2026-11-09)
 
-**Estado:** muy avanzado, falta el último paso.
+Avances mayores de la fase de ejecución/decompilación (entorno Wine + Ghidra 12.2):
+
+- ✅ **Item 1 RESUELTO** — `Hub_OpenSession("TwidoSuite","02.50")` con doble patch abre
+  sesión válida; demo **GET→SET→GET** 100% programática completada (`harness4`).
+  Ver `UNIVERSAL_PATCH.md` y `live-test-2026-11-09.md`.
+- ✅ **Producto entra REGISTRADO en la GUI** y **patch universal** (fresh + trial vencido)
+  validado empíricamente. Patcher dinámico: `tools/patcher/twido_patch.c`.
+- ✅ **GUI de Wine visible** en este entorno (invalida el bloqueo del item 5 para este host).
+- ⏳ Items 2 (checksum MD5 del `.ini`), 3 (semillas EZ Trigger), 4 (VM nativa) siguen abiertos.
+
+---
+
+## 1. Reconstrucción de sesión de `Hub_OpenSession` — ✅ RESUELTO
+
+**Estado:** COMPLETADO. Se confirmó empíricamente (ver `UNIVERSAL_PATCH.md`): con la DLL
+doble-parcheada (gate `0x11809` + verdicto Init `0x118D8`) y `p1="TwidoSuite"`/`p2="02.50"`,
+`Hub_OpenSession` devuelve HRESULT `0x0` y handle válido; `harness4` demostró GET→SET→GET.
+Texto original del item (histórico):
 
 Sabemos (vía `Registration_Log.txt` del propio producto):
 - La sesión real abre con `Product Name = "TwidoSuite"`, `Version = "02.50"` (valores de `RegistrationWizard.ini`, sección `[product]`: `RegistryName` / `RegistryVersion`).

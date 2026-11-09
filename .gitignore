@@ -1,0 +1,11 @@
+# Binarios del producto auditado — NUNCA se commitean (ver README §Alcance)
+Twidosuite v2.3.zip
+/vendor_media/
+/wine_twido/
+*.wine/
+# artefactos de build locales
+rea/node_modules/
+rea/dist/
+/ghidra/
+/artifacts/
+/rea/
