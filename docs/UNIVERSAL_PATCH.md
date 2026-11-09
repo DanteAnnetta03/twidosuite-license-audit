@@ -70,26 +70,31 @@ fuerza el estado a "registrado". No queda ninguna condición dependiente de la f
 > `pp_expired` (su date-math ya estaba decompilada), que es un proxy fiel del
 > "la fecha concluyó vencido".
 
-## 4. El patcher: `tools/patcher/twido_patch.c`
+## 4. Los ejecutables: `tools/patcher/`
 
-Patcher autónomo pensado para **Windows nativo**:
+Dos programas pensados para que los usuarios de prueba los corran en **Windows nativo**.
+Se colocan en la **carpeta principal de TwidoSuite** (buscan la DLL en
+`.\Registration\BrickLicenceManager.dll`, relativa al `.exe`):
 
-- Localiza los sitios **dinámicamente** (no por offset fijo): `pp_expired` por la
-  tabla de exports del PE; el estado por búsqueda del patrón único de 14 bytes.
-- Verifica los bytes esperados antes de escribir; aborta si no coinciden o si el
-  patrón es ambiguo.
-- Backup automático una sola vez (`<dll>.orig_backup`), idempotente, `--restore`.
+| Ejecutable (fuente) | Función |
+|---|---|
+| `twido_patch.c` → `twido_patch.exe` | Aplica U1+U2. Backup automático (`<dll>.orig_backup`), idempotente. |
+| `twido_restore.c` → `twido_restore.exe` | Restaura la DLL original desde el backup (reparación). |
 
-```
-twido_patch.exe                 # autodetecta la DLL junto al .exe
-twido_patch.exe "C:\...\BrickLicenceManager.dll"
-twido_patch.exe --restore
-```
+Características:
 
-Build: `i686-w64-mingw32-gcc -O2 -o twido_patch.exe twido_patch.c -lgdi32`
+- Localizan los sitios **dinámicamente** (no por offset fijo): `pp_expired` por la
+  tabla de exports del PE; el estado por el patrón único de 14 bytes.
+- Verifican los bytes esperados antes de escribir; abortan si no coinciden o si el
+  patrón es ambiguo, con un mensaje que dice exactamente qué pasó.
+- `MessageBox`: en éxito muestra solo `Done.` (con el autor); en error, el detalle exacto.
 
-Validado: produce la DLL `4f85ece5…` idéntica a la construida a mano, es idempotente
-y restaura al original. Ver `INSTALL.md` para el tooling.
+Build con `make` (genera `dist/` con los 2 exes + README, y un `.zip` con
+`make package`). Linux (cross-compile) y Windows nativo (MinGW-w64) — ver `INSTALL.md`.
+
+Validado: `twido_patch.exe` produce la DLL `4f85ece5…` (idéntica a la construida a
+mano, la que entra registrada), es idempotente; `twido_restore.exe` devuelve el
+original `ce12439b…`.
 
 ## 5. Alternativa considerada — patch en dos etapas
 

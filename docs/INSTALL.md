@@ -37,15 +37,60 @@ WINEPREFIX="$PWD/wine_twido" WINEARCH=win32 DISPLAY=:0 wine setup.exe
 
 Launcher del Navigator: `AS_DC31_Navigator.exe` (en la carpeta de instalación).
 
-## 2. Cross-compiler mingw (construir los `.exe`)
+## 2. Toolchain C para construir los `.exe` (PE 32-bit)
 
-Para `tools/harnesses/*.c` y `tools/patcher/*.c` (PE 32-bit):
+Los ejecutables (`tools/patcher/*.c`, `tools/harnesses/*.c`) son PE de 32 bits. Se
+pueden construir desde Linux (cross-compile) o desde Windows nativo.
+
+### 2.a Build con `make` (recomendado) — genera `dist/` + README
 
 ```bash
-sudo apt install -y gcc-mingw-w64-i686
-# ejemplos
-i686-w64-mingw32-gcc -O0 -o harness4.exe  tools/harnesses/harness4.c
-i686-w64-mingw32-gcc -O2 -o twido_patch.exe tools/patcher/twido_patch.c -lgdi32
+cd tools/patcher
+make            # -> dist/twido_patch.exe, dist/twido_restore.exe, dist/README.md
+make package    # -> dist/twido-patch-tools.zip (los 2 exes + README)
+make clean
+```
+
+El `Makefile` autodetecta el sistema (`i686-w64-mingw32-gcc` en Linux, `gcc` en
+Windows). Antes necesitás el toolchain:
+
+### 2.b Linux — cross-compiler
+
+```bash
+sudo apt install -y gcc-mingw-w64-i686 make zip
+```
+
+### 2.c Windows nativo — MinGW-w64
+
+Asumiendo TwidoSuite instalado nativamente en Windows y que querés compilar ahí:
+
+**Opción A — MSYS2 (recomendado):**
+1. Instalar MSYS2 desde <https://www.msys2.org/>.
+2. En la terminal **MSYS2 MinGW 32-bit**:
+   ```bash
+   pacman -S --needed mingw-w64-i686-gcc make zip
+   cd /ruta/a/tools/patcher
+   make            # usa el gcc de MinGW 32-bit
+   ```
+
+**Opción B — WinLibs / MinGW-w64 standalone + mingw32-make:**
+1. Bajar MinGW-w64 (i686) de <https://winlibs.com/> y agregar su `bin\` al `PATH`.
+2. En `cmd`/PowerShell:
+   ```bat
+   cd tools\patcher
+   mingw32-make
+   mingw32-make package
+   ```
+   (`mingw32-make` viene con el toolchain; usa `gcc` y PowerShell `Compress-Archive`
+   para el `package`.)
+
+### 2.d Build manual (sin make)
+
+```bash
+# Linux
+i686-w64-mingw32-gcc -O2 -s -o twido_patch.exe   tools/patcher/twido_patch.c   -lgdi32
+i686-w64-mingw32-gcc -O2 -s -o twido_restore.exe tools/patcher/twido_restore.c -lgdi32
+# Windows (MinGW): idem con  gcc  en vez del cross-compiler
 ```
 
 ## 3. REA + Ghidra + JDK (decompilación / análisis estático)
